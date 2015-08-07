@@ -302,6 +302,40 @@ formatBackExpiry = (e) ->
     e.preventDefault()
     setTimeout -> $target.val(value.replace(/\d\s\/\s$/, ''))
 
+formatMonthExpiry = (e) ->
+  digit = String.fromCharCode(e.which)
+  return unless /^\d+$/.test(digit)
+
+  $target = $(e.currentTarget)
+  val     = $target.val() + digit
+
+  if /^\d$/.test(val) and val not in ['0', '1']
+    e.preventDefault()
+    $target.val("0#{val}")
+
+  else if /^\d\d$/.test(val) and val.match(/^(\d)(\d)$/)[1] not in ['0', '1']
+    e.preventDefault()
+    $target.val("0#{digit}")
+
+appendLeadingZero = (e) ->
+  $target = $(e.currentTarget)
+  val     = $target.val()
+
+  if /^\d$/.test(val)
+    $target.val("0#{val}")
+
+formatYearExpiry = (e) ->
+  digit = String.fromCharCode(e.which)
+  return unless /^\d+$/.test(digit)
+
+  $target = $(e.currentTarget)
+  val     = $target.val() + digit
+
+  if /^\d\d$/.test(val)
+    e.preventDefault()
+    $target.val("#{val}")
+
+
 # Format CVC
 
 reFormatCVC = (e) ->
@@ -361,6 +395,43 @@ restrictExpiry = (e) ->
 
   return false if value.length > 6
 
+restrictMonthExpiry = (e) ->
+  $target = $(e.currentTarget)
+  digit   = String.fromCharCode(e.which)
+  return unless /^\d+$/.test(digit)
+
+  return if hasTextSelected($target)
+
+  value = $target.val() + digit
+  value = value.replace(/\D/g, '')
+
+  return false if value.length > 2
+
+restrictTwoDigitYearExpiry = (e) ->
+  $target = $(e.currentTarget)
+  digit   = String.fromCharCode(e.which)
+  return unless /^\d+$/.test(digit)
+
+  return if hasTextSelected($target)
+
+  value = $target.val() + digit
+  value = value.replace(/\D/g, '')
+
+  return false if value.length > 2
+
+restrictFourDigitYearExpiry = (e) ->
+  $target = $(e.currentTarget)
+  digit   = String.fromCharCode(e.which)
+  return unless /^\d+$/.test(digit)
+
+  return if hasTextSelected($target)
+
+  value = $target.val() + digit
+  value = value.replace(/\D/g, '')
+
+  return false if value.length > 4
+
+
 restrictCVC = (e) ->
   $target = $(e.currentTarget)
   digit   = String.fromCharCode(e.which)
@@ -419,6 +490,25 @@ $.payment.fn.formatCardNumber = ->
   @on('change', reFormatCardNumber)
   @on('input', reFormatCardNumber)
   @on('input', setCardType)
+  this
+
+$.payment.fn.formatMonthExpiry = ->
+  @payment('restrictNumeric')
+  @on('keypress', restrictMonthExpiry)
+  @on('keypress', formatMonthExpiry)
+  @on('blur', appendLeadingZero)
+  this
+
+$.payment.fn.formatTwoDigitYearExpiry = ->
+  @payment('restrictNumeric')
+  @on('keypress', restrictTwoDigitYearExpiry)
+  @on('keypress', formatYearExpiry)
+  this
+
+$.payment.fn.formatFourDigitYearExpiry = ->
+  @payment('restrictNumeric')
+  @on('keypress', restrictFourDigitYearExpiry)
+  @on('keypress', formatYearExpiry)
   this
 
 # Restrictions
